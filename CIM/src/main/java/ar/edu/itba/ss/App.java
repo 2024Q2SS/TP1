@@ -6,7 +6,9 @@ package ar.edu.itba.ss;
  */
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.List;
 import java.util.ArrayList;
 import com.google.gson.Gson;
@@ -15,6 +17,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonArray;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.FileReader;
+import java.nio.file.Paths;
+import java.util.HashSet;
 
 public class App {
 
@@ -24,9 +29,13 @@ public class App {
 
     private static Integer matrixSize;
 
+    private static Double fieldLength;
+
     private static Integer maxParticles;
 
     private static Double r_c;
+
+    private static Integer steps = 1;
 
     public static Coordinates getNewRandCoordinates(final Double minWidth, final Double maxWidth,
             final Double maxHeight) {
@@ -36,12 +45,27 @@ public class App {
     }
 
     public static void main(String[] args) {
-        Double fieldWidth = 100.0;
-        Double fieldHeight = 100.0;
-        r_c = 10.0;
-        maxParticles = 100;
-        field = new Field(fieldWidth, fieldHeight);
-        matrixSize = (int) Math.ceil(fieldWidth / r_c);
+        String rootDir = System.getProperty("user.dir");
+        String configPath = "../config.json";
+        if (!Paths.get(configPath).isAbsolute()) {
+            configPath = Paths.get(rootDir, configPath).toString();
+        }
+        if (args.length > 0) {
+            configPath = args[0];
+
+        }
+        Gson gson = new Gson();
+
+        try (FileReader reader = new FileReader(configPath)) {
+            JsonObject config = gson.fromJson(reader, JsonObject.class);
+            fieldLength = Objects.isNull(config.get("L")) ? 100.0 : config.get("L").getAsDouble();
+            r_c = Objects.isNull(config.get("r_c")) ? 10.0 : config.get("r_c").getAsDouble();
+            maxParticles = Objects.isNull(config.get("N")) ? 100 : config.get("N").getAsInt();
+        } catch (IOException e) {
+            System.err.println("Error reading config file: " + e.getMessage());
+        }
+        field = new Field(fieldLength, fieldLength);
+        matrixSize = (int) Math.ceil(fieldLength / r_c);
         for (int i = 0; i < matrixSize; i++) {
             for (int j = 0; j < matrixSize; j++) {
                 Cell cell = new Cell(i, j);
@@ -50,25 +74,15 @@ public class App {
         }
 
         for (int i = 0; i < maxParticles; i++) {
-            Particle particle = new Particle(i, getNewRandCoordinates(0.0, fieldWidth, fieldHeight));
+            Particle particle = new Particle(i, getNewRandCoordinates(0.0, fieldLength, fieldLength), 1.0);
             particles.put(i, particle);
         }
-        // Create Gson instance
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-        // Convert HashMap to JSON
-        String json = gson.toJson(particles);
+        for (int i = 0; i < steps; i++) {
+            sortParticles();
+            startCIM();
 
-        // Write JSON to file
-        //
-        // try (FileWriter writer = new FileWriter("data.json")) {
-        // writer.write(json);
-        // System.out.println("Successfully wrote JSON to file.");
-        // } catch (IOException e) {
-        // e.printStackTrace();
-        // }
-        sortParticles();
-        startCIM();
+        }
 
     }
 
@@ -83,11 +97,29 @@ public class App {
             Cell cell = field.getCell(row, col);
             cell.addParticle(particle);
             particle.setCell(cell);
+
         }
+        // PRINTS POSITIONS for drawing purposes
+        JsonObject mainObject = new JsonObject();
+        for (Particle particle : particles.values()) {
+            JsonObject particleObject = new JsonObject();
+            particleObject.addProperty("id", particle.getId());
+            particleObject.addProperty("x", particle.getCoordinates().getX());
+            particleObject.addProperty("y", particle.getCoordinates().getY());
+            particleObject.addProperty("radius", particle.getRadius());
+            mainObject.add(particle.getId().toString(), particleObject);
+        }
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        try (FileWriter writer = new FileWriter("position.json")) {
+            gson.toJson(mainObject, writer);
+        } catch (IOException e) {
+            System.err.println("Error writing output file: " + e.getMessage());
+        }
+
     }
 
-    public static List<Particle> getNeighbourParticles(Particle particle) {
-        List<Particle> neighbours = new ArrayList<>();
+    public static Set<Particle> getNeighbourParticles(Particle particle, List<Particle> uncheckedParticles) {
+        Set<Particle> neighbours = new HashSet<>();
         Cell cell = particle.getCell();
 
         // analyze top center cell
@@ -96,7 +128,7 @@ public class App {
 
         Cell topCenter = field.getCell(topCenterRow, topCenterCol);
         neighbours.addAll(topCenter.getContainedParticles().stream()
-                .filter(neighbour -> particle.getCoordinates().euclideanDistance(neighbour.getCoordinates()) < r_c)
+                .filter(neighbour -> particle.borderToBorderDistance(neighbour) < r_c)
                 .toList());
         // analyze top right cell
         Integer topRightRow = (cell.getRow() + 1) % matrixSize;
@@ -104,7 +136,7 @@ public class App {
 
         Cell topRight = field.getCell(topRightRow, topRightCol);
         neighbours.addAll(topRight.getContainedParticles().stream()
-                .filter(neighbour -> particle.getCoordinates().euclideanDistance(neighbour.getCoordinates()) < r_c)
+                .filter(neighbour -> particle.borderToBorderDistance(neighbour) < r_c)
                 .toList());
         // analyze middle right cell
         Integer middleRightRow = cell.getRow();
@@ -112,7 +144,7 @@ public class App {
 
         Cell middleRight = field.getCell(middleRightRow, middleRightCol);
         neighbours.addAll(middleRight.getContainedParticles().stream()
-                .filter(neighbour -> particle.getCoordinates().euclideanDistance(neighbour.getCoordinates()) < r_c)
+                .filter(neighbour -> particle.borderToBorderDistance(neighbour) < r_c)
                 .toList());
         // analyze bottom right cell
         Integer bottomRightRow = (cell.getRow() - 1 + matrixSize) % matrixSize;
@@ -120,45 +152,39 @@ public class App {
 
         Cell bottomRight = field.getCell(bottomRightRow, bottomRightCol);
         neighbours.addAll(bottomRight.getContainedParticles().stream()
-                .filter(neighbour -> particle.getCoordinates().euclideanDistance(neighbour.getCoordinates()) < r_c)
+                .filter(neighbour -> particle.borderToBorderDistance(neighbour) < r_c)
                 .toList());
-
+        // analyze own cell
+        neighbours.addAll(uncheckedParticles.stream()
+                .filter(neighbour -> particle.borderToBorderDistance(neighbour) < r_c)
+                .toList());
         return neighbours;
     }
 
     public static void startCIM() {
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        JsonObject mainObject = new JsonObject();
-        for (Cell cell : field.getCells()) {
-            List<Particle> alreadyChecked = new ArrayList<>();
-            for (Particle particle : cell.getContainedParticles()) {
-                alreadyChecked.add(particle);
-                List<Particle> neighbours = getNeighbourParticles(particle);
-                neighbours.addAll(cell.getContainedParticles()
-                        .stream().filter(p -> !alreadyChecked.contains(p)).toList());
-                JsonObject particleObject = new JsonObject();
-                JsonArray neighboursArray = new JsonArray();
-                for (Particle neighbour : neighbours) {
-                    JsonObject neighbourObject = new JsonObject();
-                    neighbourObject.addProperty("id", neighbour.getId());
-                    neighbourObject.addProperty("x", neighbour.getCoordinates().getX());
-                    neighbourObject.addProperty("y", neighbour.getCoordinates().getY());
-                    neighboursArray.add(neighbourObject);
+        Map<Integer, Set<Integer>> map = new HashMap<>();
 
+        for (Cell cell : field.getCells()) {
+            List<Particle> uncheckedParticles = new ArrayList<>();
+            uncheckedParticles.addAll(cell.getContainedParticles());
+            for (Particle particle : cell.getContainedParticles()) {
+                uncheckedParticles.remove(particle);
+                Set<Particle> neighbours = getNeighbourParticles(particle, uncheckedParticles);
+                Set<Integer> neighboursIds = map.get(particle.getId());
+                if (neighboursIds == null) {
+                    neighboursIds = Set
+                            .of(neighbours.stream().map(neighbour -> neighbour.getId()).toArray(Integer[]::new));
+                } else {
+                    neighboursIds.addAll(neighbours.stream().map(neighbour -> neighbour.getId()).toList());
                 }
-                particleObject.addProperty("id", particle.getId());
-                particleObject.addProperty("x", particle.getCoordinates().getX());
-                particleObject.addProperty("y", particle.getCoordinates().getY());
-                particleObject.add("neighbours", neighboursArray);
-                mainObject.add(particle.getId().toString(), particleObject);
+                map.put(particle.getId(), neighboursIds);
             }
         }
-        String json = gson.toJson(mainObject);
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
         try (FileWriter writer = new FileWriter("neighbours.json")) {
-            writer.write(json);
-            System.out.println("Successfully wrote JSON to file.");
+            gson.toJson(map, writer);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Error writing output file: " + e.getMessage());
         }
     }
 }

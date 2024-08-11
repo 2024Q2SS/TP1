@@ -1,0 +1,6 @@
+{
+  "field_length": 10.0,
+  "neighbour_radius": 1.0,
+  "steps": 1,
+  "max_particles": 10
+}

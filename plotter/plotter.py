@@ -49,7 +49,7 @@ already_plotted = []
 fig, ax = plt.subplots()
 main_id = np.random.choice(df.columns)
 
-plot_circle(df[main_id].x, df[main_id].y, ax, radius * 2, xlim, ylim, "red", True)
+plot_circle(df[main_id].x, df[main_id].y, ax, radius, xlim, ylim, "red", True)
 already_plotted.append(main_id)
 
 
@@ -59,7 +59,7 @@ for neighbour in df[main_id].neighbours:
         df[neighbour_id].x,
         df[neighbour_id].y,
         ax,
-        radius * 1.5,
+        radius,
         xlim,
         ylim,
         "blue",
@@ -71,7 +71,27 @@ for neighbour in df[main_id].neighbours:
     already_plotted.append(neighbour_id)
 
 for i in range(0, 99):
+    is_neighbour = False
     if i in already_plotted:
+        continue
+    neighbour_list = df[i].neighbours
+    for neighbour in neighbour_list:
+        neighbour_id = neighbour["id"]
+        if neighbour_id == main_id:
+            is_neighbour = True
+            plot_circle(
+                df[i].x,
+                df[i].y,
+                ax,
+                radius,
+                xlim,
+                ylim,
+                "blue",
+                False,
+            )
+            ax.plot([df[i].x, df[main_id].x], [df[i].y, df[main_id].y], "k-")
+            break
+    if is_neighbour:
         continue
     plot_circle(df[i].x, df[i].y, ax, radius, xlim, ylim, "black", False)
     already_plotted.append(i)

@@ -1,0 +1,6 @@
+{
+  "field_length": "(double)",
+  "neighbour_radius": "(double)",
+  "steps": "(uint)",
+  "max_particles": "(uint)"
+}
