@@ -26,13 +26,21 @@ public class App {
 
     private static Integer matrixSize;
 
-    private static Double fieldLength;
+    private static Double fieldLength = 100.0;
 
-    private static Integer maxParticles;
+    private static Integer maxParticles = 100;
 
-    private static Double r_c;
+    private static Double r_c = 10.0;
 
-    private static Integer steps = 1;
+    private static String rootDir = System.getProperty("user.dir");
+
+    private static String configPath = "../config.json";
+
+    private static String positionsPath = "../positions.json";
+
+    private static Gson gson = new Gson();
+
+    private static Boolean hasRadius = false;
 
     public static Coordinates getNewRandCoordinates(final Double minLength,
             final Double maxLength) {
@@ -41,10 +49,41 @@ public class App {
         return new Coordinates(x, y);
     }
 
+    public static void setUp() {
+        try (FileReader configReader = new FileReader(configPath)) {
+            JsonObject config = gson.fromJson(configReader, JsonObject.class);
+            fieldLength = Objects.isNull(config.get("L")) ? 100.0 : config.get("L").getAsDouble();
+            r_c = Objects.isNull(config.get("r_c")) ? 10.0 : config.get("r_c").getAsDouble();
+            maxParticles = Objects.isNull(config.get("N")) ? 100 : config.get("N").getAsInt();
+            hasRadius = !Objects.isNull(config.get("particles"));
+
+        } catch (IOException e) {
+            System.err.println("Config file not found, using defaults");
+        }
+    }
+
+    public static void createParticles() {
+        if (hasRadius) {
+            try (FileReader radiusReader = new FileReader(configPath)) {
+                JsonObject radius = gson.fromJson(radiusReader, JsonObject.class);
+                JsonArray particlesArray = radius.get("particles").getAsJsonArray();
+                for (int i = 0; i < maxParticles; i++) {
+                    Double radiusValue = particlesArray.get(i).getAsJsonObject().get("radius").getAsDouble();
+                    Particle particle = new Particle(i, radiusValue);
+                    particles.put(i, particle);
+                }
+            } catch (IOException e) {
+                System.err.println("Error reading radius file: " + e.getMessage());
+            }
+        } else {
+            for (int i = 0; i < maxParticles; i++) {
+                Particle particle = new Particle(i, defaultRadius);
+                particles.put(i, particle);
+            }
+        }
+    }
+
     public static void main(String[] args) {
-        String rootDir = System.getProperty("user.dir");
-        String configPath = "../config.json";
-        String positionsPath = "../positions.json";
         if (args.length > 0) {
             configPath = args[0];
             positionsPath = args[1];
@@ -53,44 +92,12 @@ public class App {
             configPath = Paths.get(rootDir, configPath).toString();
             positionsPath = Paths.get(rootDir, positionsPath).toString();
         }
-        Boolean hasRadius = true;
-
-        Gson gson = new Gson();
-        try (FileReader positionReader = new FileReader(positionsPath)) {
-
-            try (FileReader configReader = new FileReader(configPath)) {
-                JsonObject config = gson.fromJson(configReader, JsonObject.class);
-                fieldLength = Objects.isNull(config.get("L")) ? 100.0 : config.get("L").getAsDouble();
-                r_c = Objects.isNull(config.get("r_c")) ? 10.0 : config.get("r_c").getAsDouble();
-                maxParticles = Objects.isNull(config.get("N")) ? 100 : config.get("N").getAsInt();
-                JsonArray particleRadiusArray = config.get("particles") == null ? null
-                        : config.get("particles").getAsJsonArray();
-
-                if (particleRadiusArray == null || particleRadiusArray.size() != maxParticles) {
-                    hasRadius = false;
-                }
-                for (int i = 0; i < maxParticles; i++) {
-
-                    Double radius = defaultRadius;
-                    if (hasRadius) {
-                        radius = particleRadiusArray.get(i).getAsJsonObject().get("radius").getAsDouble();
-                    }
-                    System.out.println("Particle " + i + " with radius " + radius);
-                    Particle particle = new Particle(i, getNewRandCoordinates(0.0, fieldLength), radius);
-                    particles.put(i, particle);
-                }
-
-            } catch (IOException e) {
-                System.err.println("Error reading config file: " + e.getMessage());
-            }
-        } catch (
-
-        Exception e) {
-            // TODO: handle exception
-            System.err.println("Error reading position file: " + e.getMessage());
-        }
+        setUp();
+        System.out.println("set up done");
+        createParticles();
+        System.out.println("particles created");
         field = new Field(fieldLength, fieldLength);
-        // ESTO TENEMOS QUE REVISARLO
+        // TODO: ESTO TENEMOS QUE REVISARLO
         matrixSize = (int) Math.ceil(fieldLength / r_c);
         for (int i = 0; i < matrixSize; i++) {
             for (int j = 0; j < matrixSize; j++) {
@@ -98,13 +105,34 @@ public class App {
                 field.addCell(cell);
             }
         }
+        System.out.println("field created");
+        start();
+    }
 
-        for (int i = 0; i < steps; i++) {
+    public static void start() {
+        System.out.println("Starting...");
+        try (FileReader positionsFile = new FileReader(positionsPath)) {
+            JsonArray positions = gson.fromJson(positionsFile, JsonArray.class)
+                    .get(0).getAsJsonObject()
+                    .get("particles").getAsJsonArray();
+            for (int i = 0; i < maxParticles; i++) {
+                JsonObject particle = positions.get(i).getAsJsonObject();
+                Double x = particle.get("x").getAsDouble();
+                Double y = particle.get("y").getAsDouble();
+                Coordinates coordinates = new Coordinates(x, y);
+                particles.get(i).setCoordinate(coordinates);
+            }
             sortParticles();
             startCIM();
-
+        } catch (IOException e) {
+            System.err.println("No positions file found or its badly formatted, generating random positions");
+            for (int i = 0; i < maxParticles; i++) {
+                Coordinates coordinates = getNewRandCoordinates(0.0, fieldLength);
+                particles.get(i).setCoordinate(coordinates);
+            }
+            sortParticles();
+            startCIM();
         }
-
     }
 
     public static void sortParticles() {
@@ -118,24 +146,24 @@ public class App {
             Cell cell = field.getCell(row, col);
             cell.addParticle(particle);
             particle.setCell(cell);
-
         }
         // PRINTS POSITIONS for drawing purposes
-        JsonObject mainObject = new JsonObject();
-        for (Particle particle : particles.values()) {
-            JsonObject particleObject = new JsonObject();
-            particleObject.addProperty("id", particle.getId());
-            particleObject.addProperty("x", particle.getCoordinates().getX());
-            particleObject.addProperty("y", particle.getCoordinates().getY());
-            particleObject.addProperty("radius", particle.getRadius());
-            mainObject.add(particle.getId().toString(), particleObject);
-        }
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        try (FileWriter writer = new FileWriter("position.json")) {
-            gson.toJson(mainObject, writer);
-        } catch (IOException e) {
-            System.err.println("Error writing output file: " + e.getMessage());
-        }
+        // JsonObject mainObject = new JsonObject();
+        // for (Particle particle : particles.values()) {
+        // JsonObject particleObject = new JsonObject();
+        // particleObject.addProperty("id", particle.getId());
+        // particleObject.addProperty("x", particle.getCoordinates().getX());
+        // particleObject.addProperty("y", particle.getCoordinates().getY());
+        // particleObject.addProperty("radius", particle.getRadius());
+        // mainObject.add(particle.getId().toString(), particleObject);
+        // }
+        // // TODO: DELETE WHEN position generator works
+        // Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        // try (FileWriter writer = new FileWriter("position.json")) {
+        // gson.toJson(mainObject, writer);
+        // } catch (IOException e) {
+        // System.err.println("Error writing output file: " + e.getMessage());
+        // }
 
     }
 

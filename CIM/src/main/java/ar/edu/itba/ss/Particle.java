@@ -6,6 +6,11 @@ public class Particle {
     private Double radius;
     private Cell cell;
 
+    public Particle(Integer id, Double radius) {
+        this.id = id;
+        this.radius = radius;
+    }
+
     public Particle(Integer id, Coordinates coordinates, Double radius) {
         this.coordinates = coordinates;
         this.id = id;
@@ -18,6 +23,10 @@ public class Particle {
 
     public Cell getCell() {
         return cell;
+    }
+
+    public void setCoordinate(Coordinates coordinates) {
+        this.coordinates = coordinates;
     }
 
     public Coordinates getCoordinates() {
