@@ -43,3 +43,6 @@ buildNumber.properties
 .classpath
 
 CIM/*.json
+
+*.nix
+*.nix.bak
