@@ -1,11 +1,13 @@
 package ar.edu.itba.ss;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Cell {
     private Pair<Integer> position;
-    private List<Particle> containedParticles = new ArrayList<>();
+    private Set<Particle> containedParticles = new HashSet<>();
 
     public Cell(Integer col, Integer row) {
         this.position = new Pair<>(col, row);
@@ -35,7 +37,7 @@ public class Cell {
         return position.getSecond();
     }
 
-    public List<Particle> getContainedParticles() {
+    public Set<Particle> getContainedParticles() {
         return containedParticles;
     }
 }

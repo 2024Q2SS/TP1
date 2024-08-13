@@ -5,20 +5,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Field {
-    private final double width;
-    private final double height;
+    private final Double width;
+    private final Double height;
     private Map<Pair<Integer>, Cell> cells = new HashMap<>();
 
-    public Field(double width, double height) {
+    public Field(Double width, Double height) {
         this.width = width;
         this.height = height;
     }
 
-    public double getWidth() {
+    public Double getWidth() {
         return width;
     }
 
-    public double getHeight() {
+    public Double getHeight() {
         return height;
     }
 

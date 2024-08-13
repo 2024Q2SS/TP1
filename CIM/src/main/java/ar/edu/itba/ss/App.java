@@ -5,7 +5,6 @@ import java.util.Objects;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.List;
-import java.util.ArrayList;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.GsonBuilder;
@@ -15,16 +14,24 @@ import java.io.IOException;
 import java.io.FileReader;
 import java.nio.file.Paths;
 import java.util.HashSet;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.ParseException;
 
 public class App {
 
+    // Hola soy un comentario
     private static final Map<Integer, Particle> particles = new HashMap<>();
 
     private static Field field;
 
     private static final Double defaultRadius = 1.0;
 
-    private static Integer matrixSize;
+    private static Integer M = null;
 
     private static Double fieldLength = 100.0;
 
@@ -42,6 +49,12 @@ public class App {
 
     private static Boolean hasRadius = false;
 
+    private static Double maxRadius = 1.0;
+    private static Double minRadius = 1.0;
+
+    private static Boolean useBruteForce = false;
+    private static Boolean useCIM = true;
+
     public static Coordinates getNewRandCoordinates(final Double minLength,
             final Double maxLength) {
         Double x = minLength + Math.random() * (maxLength - minLength);
@@ -56,6 +69,7 @@ public class App {
             r_c = Objects.isNull(config.get("r_c")) ? 10.0 : config.get("r_c").getAsDouble();
             maxParticles = Objects.isNull(config.get("N")) ? 100 : config.get("N").getAsInt();
             hasRadius = !Objects.isNull(config.get("particles"));
+            M = Objects.isNull(config.get("M")) ? null : config.get("M").getAsInt();
 
         } catch (IOException e) {
             System.err.println("Config file not found, using defaults");
@@ -69,6 +83,19 @@ public class App {
                 JsonArray particlesArray = radius.get("particles").getAsJsonArray();
                 for (int i = 0; i < maxParticles; i++) {
                     Double radiusValue = particlesArray.get(i).getAsJsonObject().get("radius").getAsDouble();
+                    if (i == 0) {
+                        maxRadius = radiusValue;
+                        minRadius = radiusValue;
+
+                    } else {
+                        if (radiusValue > maxRadius) {
+                            maxRadius = radiusValue;
+                        }
+                        if (radiusValue < minRadius) {
+                            minRadius = radiusValue;
+                        }
+
+                    }
                     Particle particle = new Particle(i, radiusValue);
                     particles.put(i, particle);
                 }
@@ -84,25 +111,83 @@ public class App {
     }
 
     public static void main(String[] args) {
-        if (args.length > 0) {
-            configPath = args[0];
-            positionsPath = args[1];
+
+        Options options = new Options();
+
+        // Define the options
+        options.addOption(Option.builder()
+                .longOpt("config-path")
+                .option("c")
+                .desc("Path to the configuration file")
+                .hasArg()
+                .argName("FILE")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .option("p")
+                .longOpt("positions-path")
+                .desc("Path to the positions file")
+                .hasArg()
+                .argName("FILE")
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("brute-force")
+                .desc("Enable brute-force mode")
+                .hasArg(false)
+                .required(false)
+                .build());
+
+        options.addOption(Option.builder()
+                .longOpt("cim")
+                .desc("Enable CIM mode")
+                .hasArg(false)
+                .required(false)
+                .build());
+
+        CommandLineParser parser = new DefaultParser();
+        HelpFormatter formatter = new HelpFormatter();
+
+        try {
+            // Parse the command line arguments
+            CommandLine cmd = parser.parse(options, args);
+
+            // Extract the option values
+            if (cmd.hasOption("config-path"))
+                configPath = cmd.getOptionValue("config-path");
+            if (cmd.hasOption("positions-path"))
+                positionsPath = cmd.getOptionValue("positions-path");
+            useBruteForce = cmd.hasOption("brute-force");
+            useCIM = cmd.hasOption("cim");
+            if (useBruteForce && !useCIM) {
+                useCIM = false;
+            }
+        } catch (ParseException e) {
+            System.err.println("Error parsing command line options: " + e.getMessage());
+            formatter.printHelp("MainApp", options);
         }
+
         if (!Paths.get(configPath).isAbsolute()) {
             configPath = Paths.get(rootDir, configPath).toString();
+        }
+        if (!Paths.get(positionsPath).isAbsolute()) {
             positionsPath = Paths.get(rootDir, positionsPath).toString();
         }
+
         setUp();
         System.out.println("set up done");
         createParticles();
         System.out.println("particles created");
         field = new Field(fieldLength, fieldLength);
         // TODO: ESTO TENEMOS QUE REVISARLO
-        matrixSize = (int) Math.ceil(fieldLength / r_c);
-        for (int i = 0; i < matrixSize; i++) {
-            for (int j = 0; j < matrixSize; j++) {
-                Cell cell = new Cell(i, j);
-                field.addCell(cell);
+        if (Objects.isNull(M))
+            M = (int) Math.floor(fieldLength / (r_c + (maxRadius + minRadius)));
+        System.out.println("Using matrix size: " + M);
+        for (int i = 0; i < M; i++) {
+            for (int j = 0; j < M; j++) {
+                field.addCell(new Cell(i, j));
             }
         }
         System.out.println("field created");
@@ -122,117 +207,162 @@ public class App {
                 Coordinates coordinates = new Coordinates(x, y);
                 particles.get(i).setCoordinate(coordinates);
             }
-            sortParticles();
-            startCIM();
+
         } catch (IOException e) {
             System.err.println("No positions file found or its badly formatted, generating random positions");
             for (int i = 0; i < maxParticles; i++) {
                 Coordinates coordinates = getNewRandCoordinates(0.0, fieldLength);
                 particles.get(i).setCoordinate(coordinates);
             }
+
+        }
+        if (useBruteForce) {
+            System.out.println("Using Brute Force");
+            startBruteForce();
+        }
+        if (useCIM) {
+            System.out.println("Using CIM");
             sortParticles();
             startCIM();
         }
     }
 
-    public static void sortParticles() {
-        for (Particle particle : particles.values()) {
-            Integer col = (int) Math.floor(particle.getCoordinates().getX() / (field.getWidth() / matrixSize));
-            col = col >= matrixSize ? matrixSize - 1 : col;
-
-            Integer row = (int) Math.floor(particle.getCoordinates().getY() / (field.getHeight() / matrixSize));
-            row = row >= matrixSize ? matrixSize - 1 : row;
-
-            Cell cell = field.getCell(row, col);
-            cell.addParticle(particle);
-            particle.setCell(cell);
-        }
-        // PRINTS POSITIONS for drawing purposes
-        // JsonObject mainObject = new JsonObject();
-        // for (Particle particle : particles.values()) {
-        // JsonObject particleObject = new JsonObject();
-        // particleObject.addProperty("id", particle.getId());
-        // particleObject.addProperty("x", particle.getCoordinates().getX());
-        // particleObject.addProperty("y", particle.getCoordinates().getY());
-        // particleObject.addProperty("radius", particle.getRadius());
-        // mainObject.add(particle.getId().toString(), particleObject);
-        // }
-        // // TODO: DELETE WHEN position generator works
-        // Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        // try (FileWriter writer = new FileWriter("position.json")) {
-        // gson.toJson(mainObject, writer);
-        // } catch (IOException e) {
-        // System.err.println("Error writing output file: " + e.getMessage());
-        // }
-
-    }
-
-    public static List<Particle> getNeighboursFromCell(Cell cell, Particle particle) {
-        return cell.getContainedParticles().stream()
-                .filter(neighbour -> particle.borderToBorderDistance(neighbour) < r_c).toList();
-    }
-
-    public static Set<Particle> getNeighbourParticles(Particle particle, List<Particle> uncheckedParticles) {
-        Set<Particle> neighbours = new HashSet<>();
-        Cell cell = particle.getCell();
-
-        // analyze top center cell
-        Integer topCenterRow = (cell.getRow() + 1) % matrixSize;
-        Integer topCenterCol = cell.getCol();
-
-        Cell topCenter = field.getCell(topCenterRow, topCenterCol);
-        neighbours.addAll(getNeighboursFromCell(topCenter, particle));
-        // analyze top right cell
-        Integer topRightRow = (cell.getRow() + 1) % matrixSize;
-        Integer topRightCol = (cell.getCol() + 1) % matrixSize;
-
-        Cell topRight = field.getCell(topRightRow, topRightCol);
-        neighbours.addAll(getNeighboursFromCell(topRight, particle));
-        // analyze middle right cell
-        Integer middleRightRow = cell.getRow();
-        Integer middleRightCol = (cell.getCol() + 1) % matrixSize;
-
-        Cell middleRight = field.getCell(middleRightRow, middleRightCol);
-        neighbours.addAll(getNeighboursFromCell(middleRight, particle));
-        // analyze bottom right cell
-        Integer bottomRightRow = (cell.getRow() - 1 + matrixSize) % matrixSize;
-        Integer bottomRightCol = (cell.getRow() + 1) % matrixSize;
-
-        Cell bottomRight = field.getCell(bottomRightRow, bottomRightCol);
-        neighbours.addAll(getNeighboursFromCell(bottomRight, particle));
-        // analyze own cell
-        neighbours.addAll(uncheckedParticles.stream()
-                .filter(neighbour -> particle.borderToBorderDistance(neighbour) < r_c)
-                .toList());
-        return neighbours;
-    }
-
-    public static void startCIM() {
+    public static void startBruteForce() {
         Map<Integer, Set<Integer>> map = new HashMap<>();
-
-        for (Cell cell : field.getCells()) {
-            List<Particle> uncheckedParticles = new ArrayList<>();
-            uncheckedParticles.addAll(cell.getContainedParticles());
-            for (Particle particle : cell.getContainedParticles()) {
-                uncheckedParticles.remove(particle);
-                Set<Particle> neighbours = getNeighbourParticles(particle, uncheckedParticles);
-                Set<Integer> neighboursIds = map.get(particle.getId());
-                if (neighboursIds == null) {
-                    neighboursIds = Set
-                            .of(neighbours.stream().map(neighbour -> neighbour.getId()).toArray(Integer[]::new));
-                } else {
-                    neighboursIds.addAll(neighbours.stream().map(neighbour -> neighbour.getId()).toList());
+        for (Particle particle : particles.values()) {
+            for (Particle other : particles.values()) {
+                if (particle.getId() == other.getId())
+                    continue;
+                if (particle.getId() != other.getId() && particle.borderToBorderDistance(other) <= r_c) {
+                    System.out.println("ids: " + particle.getId() + " " + other.getId());
+                    addNeighbourRelationsToMap(map, particle.getId(), other.getId());
                 }
-                map.put(particle.getId(), neighboursIds);
             }
-        }
+            if (map.get(particle.getId()) == null) {
+                map.put(particle.getId(), new HashSet<>());
+            }
 
+        }
         // OUTPUT JSON
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        try (FileWriter writer = new FileWriter("neighbours.json")) {
+        try (FileWriter writer = new FileWriter("brute_force_neighbours.json")) {
             gson.toJson(map, writer);
         } catch (IOException e) {
             System.err.println("Error writing output file: " + e.getMessage());
         }
+    }
+
+    public static void sortParticles() {
+        Double cellLength = fieldLength / M;
+        for (Particle particle : particles.values()) {
+
+            Integer row = (int) Math.floor(particle.getCoordinates().getX() / cellLength);
+            row = row >= M ? 0 : row;
+
+            Integer col = (int) Math.floor(particle.getCoordinates().getY() / cellLength);
+            col = col >= M ? 0 : col;
+            System.out.println("putting particle" + particle.getCoordinates().getX() + ","
+                    + particle.getCoordinates().getY() + " in cell: " + row + " " + col);
+            Cell cell = field.getCell(row, col);
+            cell.addParticle(particle);
+            particle.setCell(cell);
+        }
+    }
+
+    public static void addNeighbourRelationsToMap(Map<Integer, Set<Integer>> map, Integer particleId, Integer otherId) {
+        System.out.println("Adding relation between " + particleId + " and " + otherId);
+        Set<Integer> neighboursIds = map.get(particleId);
+        if (neighboursIds == null) {
+            neighboursIds = new HashSet<>();
+        }
+        Set<Integer> othersNeighbours = map.get(otherId);
+        if (othersNeighbours == null) {
+            othersNeighbours = new HashSet<>();
+        }
+        neighboursIds.add(otherId);
+        othersNeighbours.add(particleId);
+
+        map.put(otherId, othersNeighbours);
+        map.put(particleId, neighboursIds);
+    }
+
+    public static void startCIM() {
+        Map<Integer, Set<Integer>> map = new HashMap<>();
+        Set<Particle> uncheckedParticles = new HashSet<>();
+        for (Cell cell : field.getCells()) {
+            uncheckedParticles.addAll(cell.getContainedParticles());
+            for (Particle particle : cell.getContainedParticles()) {
+                uncheckedParticles.remove(particle);
+                // OWN CELL
+                uncheckedParticles.stream().forEach((other) -> {
+                    System.out.println("particle: " + particle.getId() + " other: " + other.getId());
+                    System.out.println("b2b distance: " + particle.borderToBorderDistance(other));
+                    System.out.println("should map:  " + (particle.borderToBorderDistance(other) < r_c));
+                    if (particle.borderToBorderDistance(other) <= r_c) {
+                        addNeighbourRelationsToMap(map, particle.getId(), other.getId());
+                    }
+                });
+                Integer bottomRow = cell.getRow() == 0 ? M - 1 : cell.getRow() - 1;
+                Integer topRow = (cell.getRow() + 1) % M;
+                Integer middleRow = cell.getRow();
+                Integer rightCol = (cell.getCol() + 1) % M;
+                Integer middleCol = cell.getCol();
+
+                Cell bottomRight = field.getCell(bottomRow, rightCol);
+                Cell middleRight = field.getCell(middleRow, rightCol);
+                Cell topRight = field.getCell(topRow, rightCol);
+                Cell topCenter = field.getCell(topRow, middleCol);
+
+                bottomRight.getContainedParticles().stream().forEach((other) -> {
+                    System.out.println("particle: " + particle.getId() + " other: " + other.getId());
+                    System.out.println("b2b distance: " + particle.borderToBorderDistance(other));
+                    System.out.println("should map:  " + (particle.borderToBorderDistance(other) < r_c));
+
+                    if (particle.borderToBorderDistance(other) <= r_c) {
+                        addNeighbourRelationsToMap(map, particle.getId(), other.getId());
+                    }
+                });
+                middleRight.getContainedParticles().stream().forEach((other) -> {
+                    System.out.println("particle: " + particle.getId() + " other: " + other.getId());
+                    System.out.println("b2b distance: " + particle.borderToBorderDistance(other));
+                    System.out.println("should map:  " + (particle.borderToBorderDistance(other) < r_c));
+
+                    if (particle.borderToBorderDistance(other) <= r_c) {
+                        addNeighbourRelationsToMap(map, particle.getId(), other.getId());
+                    }
+                });
+                topRight.getContainedParticles().stream().forEach((other) -> {
+                    System.out.println("particle: " + particle.getId() + " other: " + other.getId());
+                    System.out.println("b2b distance: " + particle.borderToBorderDistance(other));
+                    System.out.println("should map:  " + (particle.borderToBorderDistance(other) < r_c));
+
+                    if (particle.borderToBorderDistance(other) <= r_c) {
+                        addNeighbourRelationsToMap(map, particle.getId(), other.getId());
+                    }
+                });
+                topCenter.getContainedParticles().stream().forEach((other) -> {
+                    System.out.println("particle: " + particle.getId() + " other: " + other.getId());
+                    System.out.println("b2b distance: " + particle.borderToBorderDistance(other));
+                    System.out.println("should map:  " + (particle.borderToBorderDistance(other) < r_c));
+
+                    if (particle.borderToBorderDistance(other) <= r_c) {
+                        addNeighbourRelationsToMap(map, particle.getId(), other.getId());
+                    }
+                });
+                if (map.get(particle.getId()) == null) {
+                    map.put(particle.getId(), new HashSet<>());
+                }
+            }
+            uncheckedParticles.clear();
+        }
+
+        // OUTPUT JSON
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        try (FileWriter writer = new FileWriter("CIM_neighbours.json")) {
+            gson.toJson(map, writer);
+        } catch (IOException e) {
+            System.err.println("Error writing output file: " + e.getMessage());
+        }
+
     }
 }

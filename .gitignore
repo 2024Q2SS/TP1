@@ -46,3 +46,6 @@ CIM/*.json
 
 *.nix
 *.nix.bak
+
+plotter/*.json
+plotter/*.png
