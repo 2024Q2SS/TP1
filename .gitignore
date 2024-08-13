@@ -49,3 +49,5 @@ CIM/*.json
 
 plotter/*.json
 plotter/*.png
+plotter/positions.json
+plotter/plot_particles.png

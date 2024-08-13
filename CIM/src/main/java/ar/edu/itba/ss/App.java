@@ -4,7 +4,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.HashMap;
 import java.util.Set;
-import java.util.List;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.GsonBuilder;
@@ -54,6 +53,8 @@ public class App {
 
     private static Boolean useBruteForce = false;
     private static Boolean useCIM = true;
+
+    private static Boolean wrapBorders = false;
 
     public static Coordinates getNewRandCoordinates(final Double minLength,
             final Double maxLength) {
@@ -146,6 +147,12 @@ public class App {
                 .hasArg(false)
                 .required(false)
                 .build());
+        options.addOption(Option.builder()
+                .longOpt("wrap-borders")
+                .desc("Make field borders wrapped")
+                .hasArg(false)
+                .required(false)
+                .build());
 
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
@@ -164,6 +171,7 @@ public class App {
             if (useBruteForce && !useCIM) {
                 useCIM = false;
             }
+            wrapBorders = cmd.hasOption("wrap-borders");
         } catch (ParseException e) {
             System.err.println("Error parsing command line options: " + e.getMessage());
             formatter.printHelp("MainApp", options);
@@ -181,7 +189,6 @@ public class App {
         createParticles();
         System.out.println("particles created");
         field = new Field(fieldLength, fieldLength);
-        // TODO: ESTO TENEMOS QUE REVISARLO
         if (Objects.isNull(M))
             M = (int) Math.floor(fieldLength / (r_c + (maxRadius + minRadius)));
         System.out.println("Using matrix size: " + M);
@@ -218,13 +225,133 @@ public class App {
         }
         if (useBruteForce) {
             System.out.println("Using Brute Force");
+            Long start = System.nanoTime();
             startBruteForce();
+            Long end = System.nanoTime();
+            System.out.println("Time elapsed: " + (end - start) / 1000000 + "ms");
         }
         if (useCIM) {
-            System.out.println("Using CIM");
-            sortParticles();
-            startCIM();
+            if (wrapBorders) {
+
+                System.out.println("Using Wrapped CIM");
+                Long start = System.nanoTime();
+                sortParticlesWrapped();
+                startCIMWrapped();
+                Long end = System.nanoTime();
+                System.out.println("Time elapsed: " + (end - start) / 1000000 + "ms");
+
+            } else {
+                System.out.println("Using CIM");
+                Long start = System.nanoTime();
+                sortParticles();
+                startCIM();
+                Long end = System.nanoTime();
+                System.out.println("Time elapsed: " + (end - start) / 1000000 + "ms");
+
+            }
+
         }
+    }
+
+    public static void sortParticles() {
+        Double cellLength = fieldLength / M;
+        for (Particle particle : particles.values()) {
+            Double xLeftLimit = particle.getCoordinates().getX() - particle.getRadius();
+            Double xRightLimit = particle.getCoordinates().getX() + particle.getRadius();
+            Double yLeftLimit = particle.getCoordinates().getY() - particle.getRadius();
+            Double yRightLimit = particle.getCoordinates().getY() + particle.getRadius();
+
+            if (xLeftLimit < 0.0 || xRightLimit > fieldLength || yLeftLimit < 0.0 || yRightLimit > fieldLength)
+                throw new IllegalArgumentException("Particle " + particle.getId() + " is out of bounds");
+
+            Integer row = (int) Math.floor(particle.getCoordinates().getX() / cellLength);
+            row = row >= M ? M - 1 : row;
+
+            Integer col = (int) Math.floor(particle.getCoordinates().getY() / cellLength);
+            col = col >= M ? M - 1 : col;
+            Cell cell = field.getCell(row, col);
+            cell.addParticle(particle);
+            particle.setCell(cell);
+        }
+    }
+
+    public static void startCIM() {
+        Map<Integer, Set<Integer>> map = new HashMap<>();
+        Set<Particle> uncheckedParticles = new HashSet<>();
+        for (Cell cell : field.getCells()) {
+            uncheckedParticles.addAll(cell.getContainedParticles());
+            for (Particle particle : cell.getContainedParticles()) {
+                uncheckedParticles.remove(particle);
+                // OWN CELL
+                uncheckedParticles.stream().forEach((other) -> {
+                    if (particle.borderToBorderDistance(other) <= r_c) {
+                        addNeighbourRelationsToMap(map, particle.getId(), other.getId());
+                    }
+                });
+                Integer bottomRow = cell.getRow() - 1;
+                Integer topRow = cell.getRow() + 1;
+                Integer middleRow = cell.getRow();
+                Integer rightCol = cell.getCol() + 1;
+                Integer middleCol = cell.getCol();
+                if (rightCol < M) {
+                    try {
+
+                        Cell bottomRight = field.getCell(bottomRow, rightCol);
+                        bottomRight.getContainedParticles().stream().forEach((other) -> {
+                            if (particle.borderToBorderDistance(other) <= r_c) {
+                                addNeighbourRelationsToMap(map, particle.getId(), other.getId());
+                            }
+                        });
+                    } catch (Exception e) {
+                    }
+                    try {
+
+                        Cell middleRight = field.getCell(middleRow, rightCol);
+                        middleRight.getContainedParticles().stream().forEach((other) -> {
+                            if (particle.borderToBorderDistance(other) <= r_c) {
+                                addNeighbourRelationsToMap(map, particle.getId(), other.getId());
+                            }
+                        });
+                    } catch (Exception e) {
+                    }
+                    try {
+                        Cell topRight = field.getCell(topRow, rightCol);
+                        topRight.getContainedParticles().stream().forEach((other) -> {
+                            if (particle.borderToBorderDistance(other) <= r_c) {
+                                addNeighbourRelationsToMap(map, particle.getId(), other.getId());
+                            }
+                        });
+
+                    } catch (Exception e) {
+                    }
+                }
+
+                try {
+                    Cell topCenter = field.getCell(topRow, middleCol);
+                    topCenter.getContainedParticles().stream().forEach((other) -> {
+                        if (particle.borderToBorderDistance(other) <= r_c) {
+                            addNeighbourRelationsToMap(map, particle.getId(), other.getId());
+                        }
+                    });
+
+                } catch (Exception e) {
+                }
+
+                if (map.get(particle.getId()) == null) {
+                    map.put(particle.getId(), new HashSet<>());
+                }
+            }
+            uncheckedParticles.clear();
+        }
+
+        // OUTPUT JSON
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        try (FileWriter writer = new FileWriter("CIM_neighbours.json")) {
+            gson.toJson(map, writer);
+        } catch (IOException e) {
+            System.err.println("Error writing output file: " + e.getMessage());
+        }
+
     }
 
     public static void startBruteForce() {
@@ -234,7 +361,6 @@ public class App {
                 if (particle.getId() == other.getId())
                     continue;
                 if (particle.getId() != other.getId() && particle.borderToBorderDistance(other) <= r_c) {
-                    System.out.println("ids: " + particle.getId() + " " + other.getId());
                     addNeighbourRelationsToMap(map, particle.getId(), other.getId());
                 }
             }
@@ -252,17 +378,14 @@ public class App {
         }
     }
 
-    public static void sortParticles() {
+    public static void sortParticlesWrapped() {
         Double cellLength = fieldLength / M;
         for (Particle particle : particles.values()) {
 
             Integer row = (int) Math.floor(particle.getCoordinates().getX() / cellLength);
             row = row >= M ? 0 : row;
-
             Integer col = (int) Math.floor(particle.getCoordinates().getY() / cellLength);
             col = col >= M ? 0 : col;
-            System.out.println("putting particle" + particle.getCoordinates().getX() + ","
-                    + particle.getCoordinates().getY() + " in cell: " + row + " " + col);
             Cell cell = field.getCell(row, col);
             cell.addParticle(particle);
             particle.setCell(cell);
@@ -270,7 +393,6 @@ public class App {
     }
 
     public static void addNeighbourRelationsToMap(Map<Integer, Set<Integer>> map, Integer particleId, Integer otherId) {
-        System.out.println("Adding relation between " + particleId + " and " + otherId);
         Set<Integer> neighboursIds = map.get(particleId);
         if (neighboursIds == null) {
             neighboursIds = new HashSet<>();
@@ -286,7 +408,7 @@ public class App {
         map.put(particleId, neighboursIds);
     }
 
-    public static void startCIM() {
+    public static void startCIMWrapped() {
         Map<Integer, Set<Integer>> map = new HashMap<>();
         Set<Particle> uncheckedParticles = new HashSet<>();
         for (Cell cell : field.getCells()) {
@@ -295,9 +417,6 @@ public class App {
                 uncheckedParticles.remove(particle);
                 // OWN CELL
                 uncheckedParticles.stream().forEach((other) -> {
-                    System.out.println("particle: " + particle.getId() + " other: " + other.getId());
-                    System.out.println("b2b distance: " + particle.borderToBorderDistance(other));
-                    System.out.println("should map:  " + (particle.borderToBorderDistance(other) < r_c));
                     if (particle.borderToBorderDistance(other) <= r_c) {
                         addNeighbourRelationsToMap(map, particle.getId(), other.getId());
                     }
@@ -314,37 +433,21 @@ public class App {
                 Cell topCenter = field.getCell(topRow, middleCol);
 
                 bottomRight.getContainedParticles().stream().forEach((other) -> {
-                    System.out.println("particle: " + particle.getId() + " other: " + other.getId());
-                    System.out.println("b2b distance: " + particle.borderToBorderDistance(other));
-                    System.out.println("should map:  " + (particle.borderToBorderDistance(other) < r_c));
-
                     if (particle.borderToBorderDistance(other) <= r_c) {
                         addNeighbourRelationsToMap(map, particle.getId(), other.getId());
                     }
                 });
                 middleRight.getContainedParticles().stream().forEach((other) -> {
-                    System.out.println("particle: " + particle.getId() + " other: " + other.getId());
-                    System.out.println("b2b distance: " + particle.borderToBorderDistance(other));
-                    System.out.println("should map:  " + (particle.borderToBorderDistance(other) < r_c));
-
                     if (particle.borderToBorderDistance(other) <= r_c) {
                         addNeighbourRelationsToMap(map, particle.getId(), other.getId());
                     }
                 });
                 topRight.getContainedParticles().stream().forEach((other) -> {
-                    System.out.println("particle: " + particle.getId() + " other: " + other.getId());
-                    System.out.println("b2b distance: " + particle.borderToBorderDistance(other));
-                    System.out.println("should map:  " + (particle.borderToBorderDistance(other) < r_c));
-
                     if (particle.borderToBorderDistance(other) <= r_c) {
                         addNeighbourRelationsToMap(map, particle.getId(), other.getId());
                     }
                 });
                 topCenter.getContainedParticles().stream().forEach((other) -> {
-                    System.out.println("particle: " + particle.getId() + " other: " + other.getId());
-                    System.out.println("b2b distance: " + particle.borderToBorderDistance(other));
-                    System.out.println("should map:  " + (particle.borderToBorderDistance(other) < r_c));
-
                     if (particle.borderToBorderDistance(other) <= r_c) {
                         addNeighbourRelationsToMap(map, particle.getId(), other.getId());
                     }
