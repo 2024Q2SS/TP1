@@ -1,4 +1,6 @@
 # Plot circles and add text
+import json
+
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -41,6 +43,21 @@ def plot_circle(x, y, ax, radius, xlim, ylim, color, fill):
         ax.add_patch(wrapper_circle)
 
 
+# Load the configuration
+with open("../config.json", "r") as config_file:
+    config = json.load(config_file)
+
+# Extract values from config
+L = config["L"]
+r_c = config["r_c"]
+
+# Calculate cell size
+cell_size = L/r_c
+
+# Calculate number of cells
+num_cells = int(L / cell_size)
+
+p_df = pd.read_json("../CIM/position.json")
 df = pd.read_json("neighbours.json")
 radius = 1
 xlim = 100
@@ -95,6 +112,14 @@ for i in range(0, 99):
         continue
     plot_circle(df[i].x, df[i].y, ax, radius, xlim, ylim, "black", False)
     already_plotted.append(i)
+
+# Add vertical lines
+for x in range(num_cells + 1):
+    ax.axvline(x=x * cell_size, color="gray", linestyle="--", alpha=0.5)
+
+# Add horizontal lines
+for y in range(num_cells + 1):
+    ax.axhline(y=y * cell_size, color="gray", linestyle="--", alpha=0.5)
 
 ax.set_xlim(0, xlim)
 ax.set_ylim(0, ylim)
