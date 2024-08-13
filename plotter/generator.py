@@ -23,18 +23,21 @@ else:
 # Definir los límites para las coordenadas
 L = config.get("L", 20)
 
-# Leer el array de partículas y sus radios desde el archivo de configuración
-particles_config = config["particles"]
+# Calcular el radio máximo permitido basado en 1/L
+max_radius = 1 
 
-# Generar partículas con coordenadas aleatorias sin superposición
+# Generar partículas con radios aleatorios y coordenadas aleatorias sin superposición
 particles = []
-for particle_config in particles_config:
+for particle_config in config["particles"]:
     particle = {}
     while True:
+        # Generar un radio aleatorio no mayor que 1/L
+        radius = round(random.uniform(0.1 * max_radius, max_radius), 2)
+        
         particle = {
-            "x": round(random.uniform(0, L), 1),
-            "y": round(random.uniform(0, L), 1),
-            "radius": particle_config["radius"]
+            "x": round(random.uniform(radius, L - radius), 1),
+            "y": round(random.uniform(radius, L - radius), 1),
+            "radius": radius
         }
         
         # Verificar si la partícula se superpone con alguna existente
