@@ -41,10 +41,10 @@ with open("../config.json", "r") as config_file:
 # Extract values from config
 L = config["L"]
 r_c = config["r_c"]
-num_particles = config["N"]  # Assuming this is how the number of particles is stored
+num_particles = config["N"]
 
 # Calculate cell size
-cell_size = L/r_c
+cell_size = L / r_c
 
 # Set up the plot
 fig, ax = plt.subplots()
@@ -54,13 +54,14 @@ ylim = L
 # Access the list of particles in positions_data
 particles = positions_data[0]["particles"]
 
-# Plot each particle from positions.json
-for particle in particles:
+# Plot each particle, using the corresponding radius from config.json
+for i, particle in enumerate(particles):
+    radius = config["particles"][i]["radius"]  # Get radius from config.json
     plot_circle(
         particle["x"], 
         particle["y"], 
         ax, 
-        particle["radius"], 
+        radius, 
         xlim, 
         ylim, 
         color="blue", 

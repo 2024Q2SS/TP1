@@ -20,24 +20,39 @@ else:
     config["seed"] = seed
     print(f"Semilla aleatoria generada: {seed}")
 
-# Definir los límites para las coordenadas
+# Definir el tamaño del tablero L
 L = config.get("L", 20)
 
-# Calcular el radio máximo permitido basado en 1/L
-max_radius = 1 
+# Definir el radio máximo permitido (máximo de 1)
+max_radius = 1
 
-# Generar partículas con radios aleatorios y coordenadas aleatorias sin superposición
+# Obtener la cantidad de partículas N
+N = config.get("N", len(config.get("particles", [])))
+
+# Asegurar que la cantidad de partículas en config.json sea N
+if "particles" not in config or len(config["particles"]) != N:
+    config["particles"] = [{"radius": 0} for _ in range(N)]
+
+# Modificar o añadir los radios en el archivo config.json
+for particle_config in config["particles"]:
+    # Generar un radio aleatorio no mayor que 1
+    radius = round(random.uniform(0.1, max_radius), 2)
+    particle_config["radius"] = radius
+
+# Guardar el archivo config.json modificado
+with open('../config.json', 'w') as config_file:
+    json.dump(config, config_file, indent=4)
+
+print("Archivo config.json modificado con éxito.")
+
+# Generar partículas con radios y coordenadas aleatorias sin superposición
 particles = []
 for particle_config in config["particles"]:
-    particle = {}
     while True:
-        # Generar un radio aleatorio no mayor que 1/L
-        radius = round(random.uniform(0.1 * max_radius, max_radius), 2)
-        
         particle = {
-            "x": round(random.uniform(radius, L - radius), 1),
-            "y": round(random.uniform(radius, L - radius), 1),
-            "radius": radius
+            "x": round(random.uniform(particle_config["radius"], L - particle_config["radius"]), 1),
+            "y": round(random.uniform(particle_config["radius"], L - particle_config["radius"]), 1),
+            "radius": particle_config["radius"]  # Use the updated radius from config.json for placement
         }
         
         # Verificar si la partícula se superpone con alguna existente
@@ -46,11 +61,14 @@ for particle_config in config["particles"]:
 
     particles.append(particle)
 
-# Crear el JSON de salida con el formato requerido
-output = [{"particles": particles}]
+# Crear el JSON de salida con las posiciones en el formato especificado
+output = [{
+    "particles": [{"x": p["x"], "y": p["y"]} for p in particles]
+}]
 
 # Guardar el JSON de salida en un archivo
 with open('positions.json', 'w') as output_file:
     json.dump(output, output_file, indent=4)
 
-print("Archivo JSON generado con éxito.")
+print("Archivo positions.json generado con éxito.")
+
