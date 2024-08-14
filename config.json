@@ -1,458 +1,909 @@
 {
-    "L": 20,
-    "r_c": 5,
-    "N": 150,
+    "L": 100,
+    "r_c": 2,
+    "N": 300,
     "particles": [
         {
-            "radius": 0.18
+            "radius": 0.25
         },
         {
-            "radius": 0.39
+            "radius": 0.25
         },
         {
-            "radius": 0.35
+            "radius": 0.25
         },
         {
-            "radius": 0.24
+            "radius": 0.25
         },
         {
-            "radius": 0.75
+            "radius": 0.25
         },
         {
-            "radius": 0.31
+            "radius": 0.25
         },
         {
-            "radius": 0.39
+            "radius": 0.25
         },
         {
-            "radius": 0.18
+            "radius": 0.25
         },
         {
-            "radius": 0.59
+            "radius": 0.25
         },
         {
-            "radius": 0.94
+            "radius": 0.25
         },
         {
-            "radius": 0.75
+            "radius": 0.25
         },
         {
-            "radius": 0.89
+            "radius": 0.25
         },
         {
-            "radius": 0.56
+            "radius": 0.25
         },
         {
-            "radius": 0.82
+            "radius": 0.25
         },
         {
-            "radius": 0.55
+            "radius": 0.25
         },
         {
-            "radius": 0.93
+            "radius": 0.25
         },
         {
-            "radius": 0.66
+            "radius": 0.25
         },
         {
-            "radius": 0.5
+            "radius": 0.25
         },
         {
-            "radius": 0.28
+            "radius": 0.25
         },
         {
-            "radius": 0.34
+            "radius": 0.25
         },
         {
-            "radius": 0.31
+            "radius": 0.25
         },
         {
-            "radius": 0.41
+            "radius": 0.25
         },
         {
-            "radius": 0.86
+            "radius": 0.25
         },
         {
-            "radius": 0.95
+            "radius": 0.25
         },
         {
-            "radius": 0.9
+            "radius": 0.25
         },
         {
-            "radius": 0.1
+            "radius": 0.25
         },
         {
-            "radius": 0.16
+            "radius": 0.25
         },
         {
-            "radius": 0.23
+            "radius": 0.25
         },
         {
-            "radius": 0.22
+            "radius": 0.25
         },
         {
-            "radius": 0.92
+            "radius": 0.25
         },
         {
-            "radius": 0.53
+            "radius": 0.25
         },
         {
-            "radius": 0.58
+            "radius": 0.25
         },
         {
-            "radius": 0.81
+            "radius": 0.25
         },
         {
-            "radius": 0.31
+            "radius": 0.25
         },
         {
-            "radius": 0.19
+            "radius": 0.25
         },
         {
-            "radius": 0.17
+            "radius": 0.25
         },
         {
-            "radius": 0.96
+            "radius": 0.25
         },
         {
-            "radius": 0.16
+            "radius": 0.25
         },
         {
-            "radius": 0.26
+            "radius": 0.25
         },
         {
-            "radius": 0.62
+            "radius": 0.25
         },
         {
-            "radius": 0.91
+            "radius": 0.25
         },
         {
-            "radius": 0.42
+            "radius": 0.25
         },
         {
-            "radius": 0.9
+            "radius": 0.25
         },
         {
-            "radius": 0.37
+            "radius": 0.25
         },
         {
-            "radius": 0.56
+            "radius": 0.25
         },
         {
-            "radius": 0.12
+            "radius": 0.25
         },
         {
-            "radius": 0.93
+            "radius": 0.25
         },
         {
-            "radius": 0.49
+            "radius": 0.25
         },
         {
-            "radius": 0.4
+            "radius": 0.25
         },
         {
-            "radius": 0.96
+            "radius": 0.25
         },
         {
-            "radius": 0.81
+            "radius": 0.25
         },
         {
-            "radius": 0.48
+            "radius": 0.25
         },
         {
-            "radius": 0.51
+            "radius": 0.25
         },
         {
-            "radius": 0.23
+            "radius": 0.25
         },
         {
-            "radius": 0.43
+            "radius": 0.25
         },
         {
-            "radius": 0.99
+            "radius": 0.25
         },
         {
-            "radius": 0.45
+            "radius": 0.25
         },
         {
-            "radius": 0.7
+            "radius": 0.25
         },
         {
-            "radius": 0.29
+            "radius": 0.25
         },
         {
-            "radius": 0.77
+            "radius": 0.25
         },
         {
-            "radius": 0.22
+            "radius": 0.25
         },
         {
-            "radius": 0.56
+            "radius": 0.25
         },
         {
-            "radius": 0.63
+            "radius": 0.25
         },
         {
-            "radius": 0.2
+            "radius": 0.25
         },
         {
-            "radius": 0.17
+            "radius": 0.25
         },
         {
-            "radius": 0.56
+            "radius": 0.25
         },
         {
-            "radius": 0.7
+            "radius": 0.25
         },
         {
-            "radius": 0.51
+            "radius": 0.25
         },
         {
-            "radius": 0.22
+            "radius": 0.25
         },
         {
-            "radius": 0.78
+            "radius": 0.25
         },
         {
-            "radius": 0.7
+            "radius": 0.25
         },
         {
-            "radius": 0.74
+            "radius": 0.25
         },
         {
-            "radius": 0.14
+            "radius": 0.25
         },
         {
-            "radius": 0.38
+            "radius": 0.25
         },
         {
-            "radius": 0.88
+            "radius": 0.25
         },
         {
-            "radius": 0.6
+            "radius": 0.25
         },
         {
-            "radius": 0.35
+            "radius": 0.25
         },
         {
-            "radius": 0.31
+            "radius": 0.25
         },
         {
-            "radius": 0.4
+            "radius": 0.25
         },
         {
-            "radius": 0.73
+            "radius": 0.25
         },
         {
-            "radius": 0.89
+            "radius": 0.25
         },
         {
-            "radius": 0.35
+            "radius": 0.25
         },
         {
-            "radius": 0.87
+            "radius": 0.25
         },
         {
-            "radius": 0.58
+            "radius": 0.25
         },
         {
-            "radius": 0.1
+            "radius": 0.25
         },
         {
-            "radius": 0.11
+            "radius": 0.25
         },
         {
-            "radius": 0.42
+            "radius": 0.25
         },
         {
-            "radius": 0.11
+            "radius": 0.25
         },
         {
-            "radius": 0.31
+            "radius": 0.25
         },
         {
-            "radius": 0.22
+            "radius": 0.25
         },
         {
-            "radius": 0.39
+            "radius": 0.25
         },
         {
-            "radius": 0.93
+            "radius": 0.25
         },
         {
-            "radius": 0.21
+            "radius": 0.25
         },
         {
-            "radius": 0.87
+            "radius": 0.25
         },
         {
-            "radius": 0.77
+            "radius": 0.25
         },
         {
-            "radius": 0.82
+            "radius": 0.25
         },
         {
-            "radius": 0.56
+            "radius": 0.25
         },
         {
-            "radius": 0.37
+            "radius": 0.25
         },
         {
-            "radius": 0.18
+            "radius": 0.25
         },
         {
-            "radius": 0.45
+            "radius": 0.25
         },
         {
-            "radius": 0.11
+            "radius": 0.25
         },
         {
-            "radius": 0.56
+            "radius": 0.25
         },
         {
-            "radius": 0.48
+            "radius": 0.25
         },
         {
-            "radius": 0.77
+            "radius": 0.25
         },
         {
-            "radius": 0.18
+            "radius": 0.25
         },
         {
-            "radius": 0.82
+            "radius": 0.25
         },
         {
-            "radius": 0.46
+            "radius": 0.25
         },
         {
-            "radius": 0.39
+            "radius": 0.25
         },
         {
-            "radius": 0.55
+            "radius": 0.25
         },
         {
-            "radius": 0.98
+            "radius": 0.25
         },
         {
-            "radius": 0.43
+            "radius": 0.25
         },
         {
-            "radius": 0.81
+            "radius": 0.25
         },
         {
-            "radius": 0.51
+            "radius": 0.25
         },
         {
-            "radius": 0.24
+            "radius": 0.25
         },
         {
-            "radius": 0.81
+            "radius": 0.25
         },
         {
-            "radius": 0.41
+            "radius": 0.25
         },
         {
-            "radius": 0.11
+            "radius": 0.25
         },
         {
-            "radius": 0.29
+            "radius": 0.25
         },
         {
-            "radius": 0.74
+            "radius": 0.25
         },
         {
-            "radius": 0.37
+            "radius": 0.25
         },
         {
-            "radius": 0.48
+            "radius": 0.25
         },
         {
-            "radius": 0.71
+            "radius": 0.25
         },
         {
-            "radius": 0.4
+            "radius": 0.25
         },
         {
-            "radius": 0.67
+            "radius": 0.25
         },
         {
-            "radius": 0.9
+            "radius": 0.25
         },
         {
-            "radius": 0.7
+            "radius": 0.25
         },
         {
-            "radius": 0.48
+            "radius": 0.25
         },
         {
-            "radius": 0.16
+            "radius": 0.25
         },
         {
-            "radius": 0.51
+            "radius": 0.25
         },
         {
-            "radius": 0.43
+            "radius": 0.25
         },
         {
-            "radius": 0.96
+            "radius": 0.25
         },
         {
-            "radius": 0.43
+            "radius": 0.25
         },
         {
-            "radius": 0.56
+            "radius": 0.25
         },
         {
-            "radius": 0.85
+            "radius": 0.25
         },
         {
-            "radius": 0.51
+            "radius": 0.25
         },
         {
-            "radius": 0.85
+            "radius": 0.25
         },
         {
-            "radius": 0.37
+            "radius": 0.25
         },
         {
-            "radius": 0.68
+            "radius": 0.25
         },
         {
-            "radius": 0.32
+            "radius": 0.25
         },
         {
-            "radius": 0.49
+            "radius": 0.25
         },
         {
-            "radius": 0.53
+            "radius": 0.25
         },
         {
-            "radius": 0.47
+            "radius": 0.25
         },
         {
-            "radius": 0.65
+            "radius": 0.25
         },
         {
-            "radius": 0.45
+            "radius": 0.25
         },
         {
-            "radius": 0.88
+            "radius": 0.25
         },
         {
-            "radius": 0.68
+            "radius": 0.25
         },
         {
-            "radius": 0.15
+            "radius": 0.25
         },
         {
-            "radius": 0.29
+            "radius": 0.25
         },
         {
-            "radius": 0.45
+            "radius": 0.25
         },
         {
-            "radius": 0.37
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
+        },
+        {
+            "radius": 0.25
         }
     ],
-    "seed": 91593
+    "seed": 91593,
+    "M": 13
 }

@@ -167,8 +167,9 @@ public class App {
             if (cmd.hasOption("positions-path"))
                 positionsPath = cmd.getOptionValue("positions-path");
             useBruteForce = cmd.hasOption("brute-force");
-            useCIM = cmd.hasOption("cim");
-            if (useBruteForce && !useCIM) {
+            Boolean CIMflag = cmd.hasOption("cim");
+
+            if (useBruteForce && !CIMflag) {
                 useCIM = false;
             }
             wrapBorders = cmd.hasOption("wrap-borders");
@@ -228,7 +229,7 @@ public class App {
             Long start = System.nanoTime();
             startBruteForce();
             Long end = System.nanoTime();
-            System.out.println("Time elapsed: " + (end - start) / 1000000 + "ms");
+            System.out.println((end - start) / 1000000);
         }
         if (useCIM) {
             if (wrapBorders) {
@@ -238,7 +239,7 @@ public class App {
                 sortParticlesWrapped();
                 startCIMWrapped();
                 Long end = System.nanoTime();
-                System.out.println("Time elapsed: " + (end - start) / 1000000 + "ms");
+                System.out.println((end - start) / 1000000);
 
             } else {
                 System.out.println("Using CIM");
@@ -246,7 +247,7 @@ public class App {
                 sortParticles();
                 startCIM();
                 Long end = System.nanoTime();
-                System.out.println("Time elapsed: " + (end - start) / 1000000 + "ms");
+                System.out.println((end - start) / 1000000);
 
             }
 
