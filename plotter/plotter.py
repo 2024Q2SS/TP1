@@ -1,21 +1,30 @@
 import json
-import numpy as np
+
 from matplotlib import pyplot as plt
+
 
 # Function to plot a circle with handling for wrapping around the edges
 def plot_circle(x, y, ax, radius, xlim, ylim, color, fill):
     ax.add_patch(plt.Circle((x, y), radius, fill=fill, color=color))
     if x - radius < 0 and y - radius < 0:
-        wrapper_circle = plt.Circle((x + xlim, y + ylim), radius, color=color, fill=fill)
+        wrapper_circle = plt.Circle(
+            (x + xlim, y + ylim), radius, color=color, fill=fill
+        )
         ax.add_patch(wrapper_circle)
     elif x - radius < 0 and y + radius > ylim:
-        wrapper_circle = plt.Circle((x + xlim, y - ylim), radius, color=color, fill=fill)
+        wrapper_circle = plt.Circle(
+            (x + xlim, y - ylim), radius, color=color, fill=fill
+        )
         ax.add_patch(wrapper_circle)
     elif x + radius > xlim and y - radius < 0:
-        wrapper_circle = plt.Circle((x - xlim, y + ylim), radius, color=color, fill=fill)
+        wrapper_circle = plt.Circle(
+            (x - xlim, y + ylim), radius, color=color, fill=fill
+        )
         ax.add_patch(wrapper_circle)
     elif x + radius > xlim and y + radius > ylim:
-        wrapper_circle = plt.Circle((x - xlim, y - ylim), radius, color=color, fill=fill)
+        wrapper_circle = plt.Circle(
+            (x - xlim, y - ylim), radius, color=color, fill=fill
+        )
         ax.add_patch(wrapper_circle)
     elif x - radius < 0:
         wrapper_circle = plt.Circle((x + xlim, y), radius, color=color, fill=fill)
@@ -29,6 +38,7 @@ def plot_circle(x, y, ax, radius, xlim, ylim, color, fill):
     elif y + radius > ylim:
         wrapper_circle = plt.Circle((x, y - ylim), radius, color=color, fill=fill)
         ax.add_patch(wrapper_circle)
+
 
 # Load the positions from positions.json
 with open("./positions.json", "r") as pos_file:
@@ -107,4 +117,3 @@ ax.set_ylim(0, ylim)
 ax.set_aspect("equal", "box")
 plt.savefig("particles_plot.png")
 plt.close()
-
