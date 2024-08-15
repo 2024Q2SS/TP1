@@ -24,7 +24,7 @@ mvn_command = []
 write_header = not os.path.exists(csv_file)
 
 # Generator command
-generator = ["pipenv", "run", "python", "generator.py"]
+generator = ["python", "generator.py"]
 path_to_config = "../config.json"
 # Loop setUp
 N = [50, 100, 150, 200, 250, 300]
