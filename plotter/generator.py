@@ -1,85 +1,85 @@
 import json
-import math
-import random
+import uuid
+
+import numpy as np
 
 
-# Función para verificar si dos partículas se superponen
-def is_overlapping(p1, p2):
-    distance = math.sqrt((p1["x"] - p2["x"]) ** 2 + (p1["y"] - p2["y"]) ** 2)
-    return distance < (p1["radius"] + p2["radius"])
+def distance(p1, p2):
+    return np.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
 
 
-# Leer la configuración desde el archivo config.json
-with open("../config.json", "r") as config_file:
-    config = json.load(config_file)
+def generate_random_coords(n, space_size, radii):
+    coords = []
+    attempts = 0
 
-# Configurar la semilla
-if "seed" in config:
-    random.seed(config["seed"])
-else:
-    seed = random.randint(0, 1000000)
-    random.seed(seed)
-    config["seed"] = seed
-    print(f"Semilla aleatoria generada: {seed}")
+    while len(coords) < n and attempts < 1000000:
+        x = np.round(
+            np.random.uniform(radii[len(coords)], space_size[0] - radii[len(coords)]), 1
+        )
+        y = np.round(
+            np.random.uniform(radii[len(coords)], space_size[1] - radii[len(coords)]), 1
+        )
+        new_coord = (x, y)
 
-# Definir el tamaño del tablero L
-L = config.get("L", 20)
+        # Check if it overlaps with any existing particles
+        overlap = False
+        for i, coord in enumerate(coords):
+            if distance(coord, new_coord) < radii[i] + radii[len(coords)]:
+                overlap = True
+                break
 
-# Definir el radio máximo permitido (máximo de 1)
-max_radius = 0.25
+        if not overlap:
+            coords.append(new_coord)
+        attempts += 1
+    if len(coords) < n:
+        print("Could not place all particles without overlap.")
+    return coords
+
+
+def save_coords_to_json(coords, filename="../positions.json"):
+    particles_list = [{"x": coord[0], "y": coord[1]} for coord in coords]
+    data = {"particles": particles_list}
+
+    with open(filename, "w") as f:
+        json.dump([data], f, indent=4)
+
+
+def gen_random_radius(n, min_radius, max_radius):
+    return np.random.uniform(min_radius, max_radius, n)
+
+
+def save_radius_to_config_json(filename="../config.json", radii=[]):
+    with open(filename, "r") as f:
+        config = json.load(f)
+        config["particles"] = [{"radius": radius} for radius in radii]
+        with open(filename, "w") as f:
+            json.dump(config, f, indent=4)
+
+
+# Example Usage:
+n_particles = 10
+space_size = (100, 100)
 min_radius = 0.25
-# Obtener la cantidad de partículas N
-N = config.get("N", len(config.get("particles", [])))
+max_radius = 0.25
 
-# Asegurar que la cantidad de partículas en config.json sea N
-if "particles" not in config or len(config["particles"]) != N:
-    config["particles"] = [{"radius": 0} for _ in range(N)]
+seed = uuid.uuid4().int & (1 << 32) - 1
 
-# Modificar o añadir los radios en el archivo config.json
-for particle_config in config["particles"]:
-    # Generar un radio aleatorio no mayor que 1
-    radius = round(random.uniform(min_radius, max_radius), 2)
-    particle_config["radius"] = radius
+with open("../config.json", "r") as f:
+    config = json.load(f)
+    n_particles = config["N"]
+    space_size = (config["L"], config["L"])
+    if "seed" in config and config["seed"] is not None:
+        seed = config["seed"]
+    else:
+        config["seed"] = seed
+        with open("../config.json", "w") as f:
+            json.dump(config, f, indent=4)
+            print(f"Seed: {seed} saved in config file")
 
-# Guardar el archivo config.json modificado
-with open("../config.json", "w") as config_file:
-    json.dump(config, config_file, indent=4)
 
-print("Archivo config.json modificado con éxito.")
-
-# Generar partículas con radios y coordenadas aleatorias sin superposición
-particles = []
-for particle_config in config["particles"]:
-    while True:
-        particle = {
-            "x": round(
-                random.uniform(
-                    particle_config["radius"], L - particle_config["radius"]
-                ),
-                1,
-            ),
-            "y": round(
-                random.uniform(
-                    particle_config["radius"], L - particle_config["radius"]
-                ),
-                1,
-            ),
-            "radius": particle_config[
-                "radius"
-            ],  # Use the updated radius from config.json for placement
-        }
-
-        # Verificar si la partícula se superpone con alguna existente
-        if not any(is_overlapping(particle, p) for p in particles):
-            break  # Si no hay superposición, sal del loop y añade la partícula
-
-    particles.append(particle)
-
-# Crear el JSON de salida con las posiciones en el formato especificado
-output = [{"particles": [{"x": p["x"], "y": p["y"]} for p in particles]}]
-
-# Guardar el JSON de salida en un archivo
-with open("positions.json", "w") as output_file:
-    json.dump(output, output_file, indent=4)
-
-print("Archivo positions.json generado con éxito.")
+radii = gen_random_radius(
+    n_particles, min_radius, max_radius
+)  # All particles have the same radius of 5 units
+save_radius_to_config_json(radii=radii)
+coordinates = generate_random_coords(n_particles, space_size, radii)
+save_coords_to_json(coordinates)
