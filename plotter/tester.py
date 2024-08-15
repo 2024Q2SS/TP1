@@ -39,11 +39,19 @@ cim_wrapped_times = []
 
 if use_brute_force:
     csv_file = "results_with_brute_force.csv"
+    # mvn_command = [
+    #     "mvn",
+    #     "exec:java",
+    #     "-Dexec.mainClass=ar.edu.itba.ss.App",
+    #     "-Dexec.args=--brute-force --cim --wrap-borders",
+    # ]
     mvn_command = [
-        "mvn",
-        "exec:java",
-        "-Dexec.mainClass=ar.edu.itba.ss.App",
-        "-Dexec.args=--brute-force --cim --wrap-borders",
+        "java",
+        "-jar",
+        "target/CIM-1.0-SNAPSHOT.jar",
+        "--brute-force",
+        "--cim",
+        " --wrap-borders",
     ]
     data.append(
         [
@@ -57,10 +65,10 @@ if use_brute_force:
 else:
     csv_file = "results.csv"
     mvn_command = [
-        "mvn",
-        "exec:java",
-        "-Dexec.mainClass=ar.edu.itba.ss.App",
-        "-Dexec.args= --wrap-borders",
+        "java",
+        "-jar",
+        "target/CIM-1.0-SNAPSHOT.jar",
+        "--wrap-borders",
     ]
     data.append(
         [
@@ -96,11 +104,12 @@ for n in N:
 
             # Extract lines 14 and 16 (indexing starts at 0)
             if use_brute_force:
-                brute_force_time = output_lines[13] if len(output_lines) > 13 else None
+                brute_force_time = output_lines[6] if len(output_lines) > 8 else None
                 brute_force_times.append(brute_force_time)
+            print(output_lines)
             cim_wrapped_time = (
-                output_lines[15 if use_brute_force else 13]
-                if len(output_lines) > 15
+                output_lines[8 if use_brute_force else 6]
+                if len(output_lines) > 6
                 else None
             )
             cim_wrapped_times.append(cim_wrapped_time)
