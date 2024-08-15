@@ -38,10 +38,19 @@ with open("./positions.json", "r") as pos_file:
 with open("../config.json", "r") as config_file:
     config = json.load(config_file)
 
+with open("./neighbours.json","r") as neighbours:
+    neighbours_json = json.load(neighbours)
+
 # Extract values from config
 L = config["L"]
 r_c = config["r_c"]
 num_particles = config["N"]
+main = config["Main"]
+    # Get the neighbours list of the particle with id `particle_id`
+neighbours = neighbours_json[str(main)]["neighbours"]
+    
+    # Extract the ids of all neighbours
+neighbour_ids = [neighbour["id"] for neighbour in neighbours]
 
 # Calculate cell size
 cell_size = L / r_c
@@ -57,6 +66,21 @@ particles = positions_data[0]["particles"]
 # Plot each particle, using the corresponding radius from config.json
 for i, particle in enumerate(particles):
     radius = config["particles"][i]["radius"]  # Get radius from config.json
+    aux_color = "black"
+    if(i == main):
+        aux_color = "red"
+        plot_circle(
+                particle["x"],
+                particle["y"],
+                ax,
+                r_c,
+                xlim,
+                ylim,
+                color = "grey",
+                fill= False
+        )
+    if (i in neighbour_ids ):
+        aux_color = "blue"
     plot_circle(
         particle["x"], 
         particle["y"], 
@@ -64,7 +88,7 @@ for i, particle in enumerate(particles):
         radius, 
         xlim, 
         ylim, 
-        color="blue", 
+        aux_color, 
         fill=True
     )
 
@@ -73,6 +97,10 @@ for x in range(int(L / cell_size) + 1):
     ax.axvline(x=x * cell_size, color="gray", linestyle="--", alpha=0.5)
 for y in range(int(L / cell_size) + 1):
     ax.axhline(y=y * cell_size, color="gray", linestyle="--", alpha=0.5)
+
+print("L", L)
+print("cell_size", cell_size)
+print("r_c", r_c)
 
 ax.set_xlim(0, xlim)
 ax.set_ylim(0, ylim)
