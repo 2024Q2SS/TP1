@@ -202,6 +202,16 @@ public class App {
         start();
     }
 
+    public static void saveMapToJson(Map<Integer, Set<Integer>> map, String dir) {
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        try (FileWriter writer = new FileWriter(dir)) {
+            gson.toJson(map, writer);
+        } catch (IOException e) {
+            System.err.println("Error writing output file: " + e.getMessage());
+        }
+
+    }
+
     public static void start() {
         System.out.println("Starting...");
         try (FileReader positionsFile = new FileReader(positionsPath)) {
@@ -227,17 +237,19 @@ public class App {
         if (useBruteForce) {
             System.out.println("Using Brute Force");
             Long start = System.nanoTime();
-            startBruteForce();
+            Map<Integer, Set<Integer>> map = startBruteForce();
             Long end = System.nanoTime();
             System.out.println((end - start) / 1000000);
+            saveMapToJson(map, "brute_force_neighbours.json");
         }
         if (useCIM) {
+            Map<Integer, Set<Integer>> map;
             if (wrapBorders) {
 
+                sortParticlesWrapped();
                 System.out.println("Using Wrapped CIM");
                 Long start = System.nanoTime();
-                sortParticlesWrapped();
-                startCIMWrapped();
+                map = startCIMWrapped();
                 Long end = System.nanoTime();
                 System.out.println((end - start) / 1000000);
 
@@ -245,12 +257,11 @@ public class App {
                 System.out.println("Using CIM");
                 Long start = System.nanoTime();
                 sortParticles();
-                startCIM();
+                map = startCIM();
                 Long end = System.nanoTime();
                 System.out.println((end - start) / 1000000);
-
             }
-
+            saveMapToJson(map, "CIM_neighbours.json");
         }
     }
 
@@ -276,7 +287,7 @@ public class App {
         }
     }
 
-    public static void startCIM() {
+    public static Map<Integer, Set<Integer>> startCIM() {
         Map<Integer, Set<Integer>> map = new HashMap<>();
         Set<Particle> uncheckedParticles = new HashSet<>();
         for (Cell cell : field.getCells()) {
@@ -345,17 +356,10 @@ public class App {
             uncheckedParticles.clear();
         }
 
-        // OUTPUT JSON
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        try (FileWriter writer = new FileWriter("CIM_neighbours.json")) {
-            gson.toJson(map, writer);
-        } catch (IOException e) {
-            System.err.println("Error writing output file: " + e.getMessage());
-        }
-
+        return map;
     }
 
-    public static void startBruteForce() {
+    public static Map<Integer, Set<Integer>> startBruteForce() {
         Map<Integer, Set<Integer>> map = new HashMap<>();
         for (Particle particle : particles.values()) {
             for (Particle other : particles.values()) {
@@ -370,13 +374,7 @@ public class App {
             }
 
         }
-        // OUTPUT JSON
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        try (FileWriter writer = new FileWriter("brute_force_neighbours.json")) {
-            gson.toJson(map, writer);
-        } catch (IOException e) {
-            System.err.println("Error writing output file: " + e.getMessage());
-        }
+        return map;
     }
 
     public static void sortParticlesWrapped() {
@@ -409,7 +407,7 @@ public class App {
         map.put(particleId, neighboursIds);
     }
 
-    public static void startCIMWrapped() {
+    public static Map<Integer, Set<Integer>> startCIMWrapped() {
         Map<Integer, Set<Integer>> map = new HashMap<>();
         Set<Particle> uncheckedParticles = new HashSet<>();
         for (Cell cell : field.getCells()) {
@@ -460,13 +458,6 @@ public class App {
             uncheckedParticles.clear();
         }
 
-        // OUTPUT JSON
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        try (FileWriter writer = new FileWriter("CIM_neighbours.json")) {
-            gson.toJson(map, writer);
-        } catch (IOException e) {
-            System.err.println("Error writing output file: " + e.getMessage());
-        }
-
+        return map;
     }
 }

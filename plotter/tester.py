@@ -27,7 +27,7 @@ write_header = not os.path.exists(csv_file)
 generator = ["python", "generator.py"]
 path_to_config = "../config.json"
 # Loop setUp
-N = [50, 100, 150, 200, 250, 300]
+N = [50, 100, 150, 200]
 M = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
 # N = [100, 200]
 # M = [2, 13]
@@ -106,7 +106,6 @@ for n in N:
             if use_brute_force:
                 brute_force_time = output_lines[6] if len(output_lines) > 8 else None
                 brute_force_times.append(brute_force_time)
-            print(output_lines)
             cim_wrapped_time = (
                 output_lines[8 if use_brute_force else 6]
                 if len(output_lines) > 6

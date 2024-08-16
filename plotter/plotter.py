@@ -78,7 +78,14 @@ for i, particle in enumerate(particles):
     if i == main:
         aux_color = "red"
         plot_circle(
-            particle["x"], particle["y"], ax, r_c, xlim, ylim, color="grey", fill=False
+            particle["x"],
+            particle["y"],
+            ax,
+            r_c + radius,
+            xlim,
+            ylim,
+            color="grey",
+            fill=False,
         )
     if i in neighbours:
         aux_color = "blue"
