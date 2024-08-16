@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Set;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import java.io.FileWriter;
@@ -80,10 +81,12 @@ public class App {
     public static void createParticles() {
         if (hasRadius) {
             try (FileReader radiusReader = new FileReader(configPath)) {
-                JsonObject radius = gson.fromJson(radiusReader, JsonObject.class);
-                JsonArray particlesArray = radius.get("particles").getAsJsonArray();
-                for (int i = 0; i < maxParticles; i++) {
-                    Double radiusValue = particlesArray.get(i).getAsJsonObject().get("radius").getAsDouble();
+                JsonObject radii = gson.fromJson(radiusReader, JsonObject.class);
+                JsonArray particlesArray = radii.get("particles").getAsJsonArray();
+                for (JsonElement element : particlesArray) {
+                    JsonObject particleObject = element.getAsJsonObject();
+                    Integer i = particleObject.get("id").getAsInt();
+                    Double radiusValue = particleObject.get("radius").getAsDouble();
                     if (i == 0) {
                         maxRadius = radiusValue;
                         minRadius = radiusValue;
@@ -95,7 +98,6 @@ public class App {
                         if (radiusValue < minRadius) {
                             minRadius = radiusValue;
                         }
-
                     }
                     Particle particle = new Particle(i, radiusValue);
                     particles.put(i, particle);
@@ -103,7 +105,9 @@ public class App {
             } catch (IOException e) {
                 System.err.println("Error reading radius file: " + e.getMessage());
             }
-        } else {
+        } else
+
+        {
             for (int i = 0; i < maxParticles; i++) {
                 Particle particle = new Particle(i, defaultRadius);
                 particles.put(i, particle);
@@ -218,14 +222,15 @@ public class App {
             JsonArray positions = gson.fromJson(positionsFile, JsonArray.class)
                     .get(0).getAsJsonObject()
                     .get("particles").getAsJsonArray();
-            for (int i = 0; i < maxParticles; i++) {
-                JsonObject particle = positions.get(i).getAsJsonObject();
+            for (JsonElement element : positions) {
+                JsonObject particle = element.getAsJsonObject();
+                Integer id = particle.get("id").getAsInt();
                 Double x = particle.get("x").getAsDouble();
                 Double y = particle.get("y").getAsDouble();
-                Coordinates coordinates = new Coordinates(x, y);
-                particles.get(i).setCoordinate(coordinates);
-            }
 
+                Coordinates coordinates = new Coordinates(x, y);
+                particles.get(id).setCoordinate(coordinates);
+            }
         } catch (IOException e) {
             System.err.println("No positions file found or its badly formatted, generating random positions");
             for (int i = 0; i < maxParticles; i++) {

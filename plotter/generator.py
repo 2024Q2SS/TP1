@@ -37,7 +37,10 @@ def generate_random_coords(n, space_size, radii):
 
 
 def save_coords_to_json(coords, filename="../positions.json"):
-    particles_list = [{"x": coord[0], "y": coord[1]} for coord in coords]
+    particles_list = [
+        {"id": i, "x": coord[0], "y": coord[1]} for i, coord in enumerate(coords)
+    ]
+
     data = {"particles": particles_list}
 
     with open(filename, "w") as f:
@@ -51,7 +54,9 @@ def gen_random_radius(n, min_radius, max_radius):
 def save_radius_to_config_json(filename="../config.json", radii=[]):
     with open(filename, "r") as f:
         config = json.load(f)
-        config["particles"] = [{"radius": radius} for radius in radii]
+        config["particles"] = [
+            {"id": i, "radius": radius} for i, radius in enumerate(radii)
+        ]
         with open(filename, "w") as f:
             json.dump(config, f, indent=4)
 
