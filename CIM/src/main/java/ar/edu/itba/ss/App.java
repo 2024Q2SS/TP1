@@ -386,9 +386,9 @@ public class App {
         Double cellLength = fieldLength / M;
         for (Particle particle : particles.values()) {
 
-            Integer row = (int) Math.floor(particle.getCoordinates().getX() / cellLength);
+            Integer row = (int) Math.floor(particle.getCoordinates().getY() / cellLength);
             row = row >= M ? 0 : row;
-            Integer col = (int) Math.floor(particle.getCoordinates().getY() / cellLength);
+            Integer col = (int) Math.floor(particle.getCoordinates().getX() / cellLength);
             col = col >= M ? 0 : col;
             Cell cell = field.getCell(row, col);
             cell.addParticle(particle);
@@ -430,28 +430,71 @@ public class App {
                 Integer middleRow = cell.getRow();
                 Integer rightCol = (cell.getCol() + 1) % M;
                 Integer middleCol = cell.getCol();
-
+                
+                final boolean topFlag = topRow == 0;
+                final boolean bottomFlag = bottomRow == M-1;
+                final boolean rightFlag = rightCol == 0;
+                
                 Cell bottomRight = field.getCell(bottomRow, rightCol);
                 Cell middleRight = field.getCell(middleRow, rightCol);
                 Cell topRight = field.getCell(topRow, rightCol);
                 Cell topCenter = field.getCell(topRow, middleCol);
 
                 bottomRight.getContainedParticles().stream().forEach((other) -> {
-                    if (particle.borderToBorderDistance(other) <= r_c) {
-                        addNeighbourRelationsToMap(map, particle.getId(), other.getId());
+                    if(bottomFlag && rightFlag ){
+                        Particle aux = new Particle(0, new Coordinates(other.getCoordinates().getX() + fieldLength ,other.getCoordinates().getY() + fieldLength ),other.getRadius());
+                        if(particle.borderToBorderDistance(aux) <= r_c){
+                            addNeighbourRelationsToMap(map,particle.getId(), other.getId()); //agrego el id de other porque aux tiene un id 0.
+                        }
+                    }
+                    else if(!bottomFlag && rightFlag){
+
+                        Particle aux = new Particle(0, new Coordinates(other.getCoordinates().getX() + fieldLength , other.getCoordinates().getY()), other.getRadius());
+                        if(particle.borderToBorderDistance(aux) <= r_c){
+                            System.out.println("found wrapped neighbour");
+                            addNeighbourRelationsToMap(map,particle.getId(), other.getId()); //agrego el id de other porque aux tiene un id 0.
+                        }
+                    }
+                    else if(particle.borderToBorderDistance(other) <= r_c){
+                        addNeighbourRelationsToMap(map,particle.getId(),other.getId());
                     }
                 });
                 middleRight.getContainedParticles().stream().forEach((other) -> {
-                    if (particle.borderToBorderDistance(other) <= r_c) {
+                    if(rightFlag){
+                        Particle aux = new Particle(0, new Coordinates(other.getCoordinates().getX() + fieldLength,other.getCoordinates().getY()),other.getRadius());
+                        if(particle.borderToBorderDistance(aux) <= r_c){
+                            addNeighbourRelationsToMap(map,particle.getId(),other.getId());
+                        }
+                    }
+                    else if (particle.borderToBorderDistance(other) <= r_c) {
                         addNeighbourRelationsToMap(map, particle.getId(), other.getId());
                     }
                 });
                 topRight.getContainedParticles().stream().forEach((other) -> {
-                    if (particle.borderToBorderDistance(other) <= r_c) {
+                   if(topFlag && rightFlag){
+                       Particle aux = new Particle(0, new Coordinates(other.getCoordinates().getX() + fieldLength, other.getCoordinates().getY() + fieldLength),other.getRadius());
+                       if(particle.borderToBorderDistance(aux) <= r_c){
+                            addNeighbourRelationsToMap(map,particle.getId(),other.getId());
+                        }
+                    }
+                    if(!topFlag && rightFlag){
+                        Particle aux = new Particle(0, new Coordinates(other.getCoordinates().getX() + fieldLength , other.getCoordinates().getY()),other.getRadius());
+                        if(particle.borderToBorderDistance(aux) <= r_c){
+                            System.out.println("found wrapped neighbour");
+                            addNeighbourRelationsToMap(map,particle.getId(),other.getId());
+                         }
+                    }
+                    else if (particle.borderToBorderDistance(other) <= r_c) {
                         addNeighbourRelationsToMap(map, particle.getId(), other.getId());
                     }
                 });
                 topCenter.getContainedParticles().stream().forEach((other) -> {
+                    if(topFlag){
+                        Particle aux = new Particle(0, new Coordinates(other.getCoordinates().getX(), other.getCoordinates().getY()  + fieldLength), other.getRadius());
+                        if(particle.borderToBorderDistance(aux) <= r_c) {
+                            addNeighbourRelationsToMap(map, particle.getId(), other.getId());
+                        }
+                    }
                     if (particle.borderToBorderDistance(other) <= r_c) {
                         addNeighbourRelationsToMap(map, particle.getId(), other.getId());
                     }

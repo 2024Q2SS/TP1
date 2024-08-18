@@ -47,6 +47,10 @@ CIM/*.json
 *.nix
 *.nix.bak
 
+*.idea
+CIM/*.idea
+
+
 plotter/*.json
 plotter/*.png
 plotter/positions.json

@@ -1,43 +1,36 @@
 import json
+import matplotlib.pyplot as plt
+import numpy as np
 
-from matplotlib import pyplot as plt
-
-
-# Function to plot a circle with handling for wrapping around the edges
 def plot_circle(x, y, ax, radius, xlim, ylim, color, fill):
-    ax.add_patch(plt.Circle((x, y), radius, fill=fill, color=color))
+    # Function to add a circle and its wrapped counterparts
+    def add_circle(x_center, y_center):
+        ax.add_patch(plt.Circle((x_center, y_center), radius, fill=fill, color=color))
+
+    # Main circle
+    add_circle(x, y)
+
+    # Check and wrap around x-axis
+    if x - radius < 0:
+        add_circle(x + xlim, y)  # Left to Right wrap
+    if x + radius > xlim:
+        add_circle(x - xlim, y)  # Right to Left wrap
+
+    # Check and wrap around y-axis
+    if y - radius < 0:
+        add_circle(x, y + ylim)  # Bottom to Top wrap
+    if y + radius > ylim:
+        add_circle(x, y - ylim)  # Top to Bottom wrap
+
+    # Check and wrap around both axes (corners)
     if x - radius < 0 and y - radius < 0:
-        wrapper_circle = plt.Circle(
-            (x + xlim, y + ylim), radius, color=color, fill=fill
-        )
-        ax.add_patch(wrapper_circle)
-    elif x - radius < 0 and y + radius > ylim:
-        wrapper_circle = plt.Circle(
-            (x + xlim, y - ylim), radius, color=color, fill=fill
-        )
-        ax.add_patch(wrapper_circle)
-    elif x + radius > xlim and y - radius < 0:
-        wrapper_circle = plt.Circle(
-            (x - xlim, y + ylim), radius, color=color, fill=fill
-        )
-        ax.add_patch(wrapper_circle)
-    elif x + radius > xlim and y + radius > ylim:
-        wrapper_circle = plt.Circle(
-            (x - xlim, y - ylim), radius, color=color, fill=fill
-        )
-        ax.add_patch(wrapper_circle)
-    elif x - radius < 0:
-        wrapper_circle = plt.Circle((x + xlim, y), radius, color=color, fill=fill)
-        ax.add_patch(wrapper_circle)
-    elif x + radius > xlim:
-        wrapper_circle = plt.Circle((x - xlim, y), radius, color=color, fill=fill)
-        ax.add_patch(wrapper_circle)
-    elif y - radius < 0:
-        wrapper_circle = plt.Circle((x, y + ylim), radius, color=color, fill=fill)
-        ax.add_patch(wrapper_circle)
-    elif y + radius > ylim:
-        wrapper_circle = plt.Circle((x, y - ylim), radius, color=color, fill=fill)
-        ax.add_patch(wrapper_circle)
+        add_circle(x + xlim, y + ylim)  # Bottom-left to Top-right wrap
+    if x + radius > xlim and y - radius < 0:
+        add_circle(x - xlim, y + ylim)  # Bottom-right to Top-left wrap
+    if x - radius < 0 and y + radius > ylim:
+        add_circle(x + xlim, y - ylim)  # Top-left to Bottom-right wrap
+    if x + radius > xlim and y + radius > ylim:
+        add_circle(x - xlim, y - ylim)  # Top-right to Bottom-left wrap
 
 
 # Load the positions from positions.json
@@ -57,7 +50,7 @@ r_c = config["r_c"]
 num_particles = config["N"]
 main = config["Main"]
 
-# Get the neighbours list of the particle with id `particle_id`
+# Get the neighbours list of the particle with id `main`
 neighbours = neighbours_json[str(main)]
 # Calculate cell size
 cell_size = L / (r_c + 0.5)
@@ -69,43 +62,63 @@ ylim = L
 
 # Access the list of particles in positions_data
 particles = positions_data[0]["particles"]
+main_radius = config["particles"][main]["radius"]
 
 
-# Plot each particle, using the corresponding radius from config.json
-for i, particle in enumerate(particles):
-    radius = config["particles"][i]["radius"]  # Get radius from config.json
-    aux_color = "black"
-    if i == main:
-        aux_color = "red"
+# Function to update the plot
+def update_plot(main):
+    ax.clear()
+    neighbours = neighbours_json[str(main)]
+
+    # Plot each particle
+    for i, particle in enumerate(particles):
+        radius = config["particles"][i]["radius"]
+        aux_color = "black"
+        if i == main:
+            aux_color = "red"
+            plot_circle(
+                    particle["x"],
+                    particle["y"],
+                    ax,
+                    r_c + main_radius,
+                    xlim,
+                    ylim,
+                    color="grey",
+                    fill=False)
+        if i in neighbours:
+            aux_color = "blue"
         plot_circle(
-            particle["x"],
-            particle["y"],
-            ax,
-            r_c + radius,
-            xlim,
-            ylim,
-            color="grey",
-            fill=False,
+            particle["x"], particle["y"], ax, radius, xlim, ylim, aux_color, fill=True
         )
-    if i in neighbours:
-        aux_color = "blue"
-    plot_circle(
-        particle["x"], particle["y"], ax, radius, xlim, ylim, aux_color, fill=True
-    )
+        ax.text(particle["x"]+0.1,particle["y"]+0.1,particle["id"],fontsize=10,color="black")
 
-# Add vertical and horizontal grid lines
-cell_limits = [round(L / cell_size, 1) * i for i in range(int(cell_size) + 1)]
-for x in cell_limits:
-    ax.axvline(x=x, color="gray", linestyle="--", alpha=0.5)
-for y in cell_limits:
-    ax.axhline(y=y, color="gray", linestyle="--", alpha=0.5)
+    # Add vertical and horizontal grid lines
+    cell_limits = [round(L / cell_size, 1) * i for i in range(int(cell_size) + 1)]
+    for x in cell_limits:
+        ax.axvline(x=x, color="gray", linestyle="--", alpha=0.5)
+    for y in cell_limits:
+        ax.axhline(y=y, color="gray", linestyle="--", alpha=0.5)
 
-print("L", L)
-print("cell_size", cell_size)
-print("r_c", r_c)
+    ax.set_xlim(0, xlim)
+    ax.set_ylim(0, ylim)
+    ax.set_aspect("equal", "box")
+    plt.draw()
 
-ax.set_xlim(0, xlim)
-ax.set_ylim(0, ylim)
-ax.set_aspect("equal", "box")
-plt.savefig("particles_plot.png")
-plt.close()
+# Function to handle mouse click events
+def on_click(event):
+    if event.inaxes is not None:
+        # Find the particle closest to the click position
+        click_x, click_y = event.xdata, event.ydata
+        distances = [(i, np.hypot(p["x"] - click_x, p["y"] - click_y)) for i, p in enumerate(particles)]
+        closest_particle = min(distances, key=lambda t: t[1])[0]
+
+        # Update plot with the new main particle
+        update_plot(closest_particle)
+
+# Initial plot
+update_plot(main)
+
+# Connect the click event to the on_click function
+fig.canvas.mpl_connect("button_press_event", on_click)
+
+plt.show()
