@@ -90,7 +90,7 @@ def update_plot(main):
         plot_circle(
             particle["x"], particle["y"], ax, radius, xlim, ylim, aux_color, fill=True
         )
-        ax.text(particle["x"]+0.1,particle["y"]+0.1,particle["id"],fontsize=10,color="black")
+        #ax.text(particle["x"]+0.1,particle["y"]+0.1,particle["id"],fontsize=10,color="black")
 
     # Add vertical and horizontal grid lines
     cell_limits = [round(L / cell_size, 1) * i for i in range(int(cell_size) + 1)]
